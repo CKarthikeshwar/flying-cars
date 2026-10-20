@@ -1,0 +1,73 @@
+# AirHop
+
+A browser racing game: the car sticks to floors, walls and ceilings and spends one shared air tank on hops, boosts and flips. Single player, desktop, keyboard, no backend.
+
+The full build spec is `AirHop Build Spec for Claude Code.md`. Visual direction is `ART_DIRECTION.md`, product facts are `PRODUCT.md`, and the HUD and menu mockups are in `ui-mockups/`. Decisions the spec left open are in `DECISIONS.md`.
+
+The game lives in `airhop/`. Run everything from there.
+
+## Commands
+
+```bash
+cd airhop
+npm run dev      # dev server (add ?debug=1 to the URL for debug mode)
+npm test         # Vitest, runs headless
+npm run build    # tsc, then a production build to dist/
+npm run lint     # ESLint
+```
+
+## Project structure
+
+```text
+airhop/
+  index.html
+  src/
+    main.ts              boots the game and starts the loop
+    game/
+      Game.ts            state machine: menu, countdown, racing, finished
+      Loop.ts            fixed-timestep accumulator
+      Race.ts            laps, checkpoints, positions, timer, ghost
+    physics/
+      world.ts           Rapier setup, zero gravity
+      CarBody.ts         rigid body and cached orientation
+      surface.ts         finds the surface under the car and its normal
+      forces.ts          gravity, suction, drive, steering, drag
+      thrusters.ts       air tank, boost factor, spin control
+      Sim.ts             one fixed step: sense, hop, forces, spin, step
+      Input.ts           the plain Input object keyboard and AI both fill
+      landing.ts         landing classifier
+      flips.ts           flip counter
+    track/               spline, banking frame, mesh and collider, checkpoints, tracks/
+    ai/Racer.ts          waypoint-following controller
+    render/              scene, carModel, camera, effects
+    input/keyboard.ts    key state to an Input object
+    ui/                  hud, menu, debug overlay, css
+    audio/sfx.ts
+    util/                math.ts, constants.ts (every tuning number)
+  tests/                 Vitest files that mirror src/
+```
+
+Data flow each physics step: keyboard makes an `Input`, `surface.ts` finds the surface and its normal, `forces.ts` and `thrusters.ts` add forces and set spin on the Rapier body, Rapier steps, then `Race.ts` checks checkpoints and `render/` and `ui/` read the new state.
+
+## Rules
+
+2. Strict TypeScript, no `any`. Small modules with one job each.
+3. Every tuning number lives in `src/util/constants.ts`. No magic numbers in physics code.
+4. Do not allocate objects inside the physics step. Reuse `Vector3` and `Quaternion` instances.
+5. `physics/` and `track/` must not import from `render/` or `ui/`.
+6. Write Vitest tests with the code they cover. Before calling a milestone done run `npm test` and `npm run build` and check every "Done when" item.
+7. Debug mode at `?debug=1`: surface normals as arrows, air, speed, landing angle, slow motion on T.
+8. Only assets made in code or free of licence terms. No network calls at runtime. No Tesla or SpaceX names, logos or car shapes.
+9. If the spec is ambiguous, pick the simplest option and add one line to `DECISIONS.md`.
+10. Commit at the end of each milestone: `Milestone N: <summary>`.
+
+## Conventions
+
+- The car faces -z, right is +x, up is +y at the identity orientation.
+- Store orientation as a quaternion. Never Euler angles.
+- Physics step is 1/120 s, fixed. Rapier gravity is zero, the game applies gravity itself.
+- Fonts are self-hosted through `@fontsource` packages. Colours and type follow `ART_DIRECTION.md`.
+
+## After each milestone, report
+
+What works and how to run it, each "Done when" item as pass or fail with the measured number, and up to three feel questions for the human to playtest.

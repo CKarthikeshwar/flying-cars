@@ -1,0 +1,54 @@
+@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Saira+Extra+Condensed:wght@500;600;700;800&display=swap");
+
+/* AirHop design tokens. Mockup note: fonts load from Google Fonts here;
+   in the game, self-host Chakra Petch and Saira Extra Condensed (OFL) in src/ui/fonts. */
+:root {
+  /* ground: blue-black, like a monitor in a dark room */
+  --ground: #06080b;
+  --panel: #0c1116;
+  --panel-2: #121a21;
+  --line: #22303a;
+  --line-strong: #34495a;
+
+  --text: #eaf1f5;
+  --text-dim: #93a4af;   /* 7.3:1 on --panel */
+  --text-faint: #62737e; /* labels over --panel only, never body copy */
+
+  /* four accents, each with one job */
+  --air: #19e3ff;        /* air tank, charge, UI focus */
+  --heat: #ff7a1a;       /* speed, boost, the player */
+  --charge: #b8ff3c;     /* ahead, perfect, success */
+  --alarm: #ff2e63;      /* low air, crash, behind */
+  --ghost: #a99bff;      /* ghost lap only */
+
+  --font-ui: "Chakra Petch", system-ui, sans-serif;
+  --font-num: "Saira Extra Condensed", "Chakra Petch", sans-serif;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { margin: 0; height: 100%; }
+
+body {
+  background: var(--ground);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--air); color: var(--ground); }
+
+:focus-visible { outline: 2px solid var(--air); outline-offset: 3px; }
+
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+
+/* thin themed scrollbars */
+* { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

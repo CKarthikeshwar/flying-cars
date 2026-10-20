@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AirHop track select mockup</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  body {
+    min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto;
+    background:
+      linear-gradient(180deg, rgba(6,8,11,0) 55%, rgba(6,8,11,1) 100%),
+      repeating-linear-gradient(90deg, rgba(34,48,58,0.35) 0 1px, transparent 1px 96px),
+      repeating-linear-gradient(0deg, rgba(34,48,58,0.35) 0 1px, transparent 1px 96px),
+      var(--ground);
+  }
+
+  header { display: flex; align-items: center; justify-content: space-between; padding: 28px clamp(20px, 4vw, 64px) 0; }
+  .logo { font: 800 clamp(34px, 4vw, 52px)/1 var(--font-num); letter-spacing: 0.14em; text-transform: uppercase; display: flex; align-items: baseline; gap: 0.12em; }
+  .logo em { font-style: normal; color: var(--air); }
+  .logo small { font: 500 13px var(--font-ui); letter-spacing: 0.2em; color: var(--text-dim); margin-left: 18px; }
+
+  main { display: grid; grid-template-columns: minmax(320px, 5fr) 7fr; gap: clamp(20px, 3vw, 56px); padding: clamp(20px, 3vw, 44px) clamp(20px, 4vw, 64px); align-items: stretch; }
+
+  /* ---------- track list ---------- */
+  .list { display: flex; flex-direction: column; gap: 10px; }
+  h2 { margin: 0 0 6px; font: 600 15px var(--font-ui); letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim); }
+
+  .track {
+    --chamfer: 16px;
+    appearance: none; text-align: left; cursor: pointer; width: 100%;
+    background: var(--panel); color: var(--text); border: 0; padding: 18px 20px 18px 22px;
+    display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; align-items: center;
+    clip-path: polygon(0 0, calc(100% - var(--chamfer)) 0, 100% var(--chamfer), 100% 100%, var(--chamfer) 100%, 0 calc(100% - var(--chamfer)));
+    transition: background 160ms var(--ease-out), transform 160ms var(--ease-out);
+  }
+  .track:hover { background: var(--panel-2); }
+  .track[aria-selected="true"] { background: var(--air); color: var(--ground); transform: translateX(10px); }
+  .track .name { font: 700 28px/1 var(--font-num); letter-spacing: 0.08em; text-transform: uppercase; }
+  .track .blurb { grid-column: 1; color: var(--text-dim); font-size: 14px; }
+  .track[aria-selected="true"] .blurb { color: #0a2a31; }
+  .track .best { grid-row: 1 / span 2; grid-column: 2; text-align: right; }
+  .track .best b { display: block; font: 700 26px/1 var(--font-num); }
+  .track .best span { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-dim); }
+  .track[aria-selected="true"] .best span { color: #0a2a31; }
+  .track .best.none b { color: var(--text-faint); }
+  .track[aria-selected="true"] .best.none b { color: #0a2a31; }
+
+  /* ---------- preview ---------- */
+  .preview { background: rgba(12, 17, 22, 0.88); padding: clamp(18px, 2.4vw, 36px); display: grid; grid-template-rows: auto 1fr auto; gap: 18px;
+    clip-path: polygon(0 0, calc(100% - 28px) 0, 100% 28px, 100% 100%, 28px 100%, 0 calc(100% - 28px)); }
+  .preview h1 { margin: 0; font: 800 clamp(40px, 5vw, 72px)/0.95 var(--font-num); letter-spacing: 0.06em; text-transform: uppercase; text-wrap: balance; }
+  .preview .desc { color: var(--text-dim); margin: 8px 0 0; max-width: 52ch; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .tag { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 9px; background: var(--panel-2); color: var(--text); font: 600 13px var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; }
+  .tag svg { width: 20px; height: 20px; stroke: var(--air); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .map { position: relative; min-height: 220px; }
+  .map svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .map .road { fill: none; stroke: var(--line-strong); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
+  .map .line { fill: none; stroke: var(--heat); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 4px rgba(255,122,26,.6)); }
+  .map .draw { stroke-dasharray: var(--len); stroke-dashoffset: var(--len); animation: draw 900ms var(--ease-out) forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  .map .charge { fill: none; stroke: var(--charge); stroke-width: 6; stroke-linecap: butt; }
+  .map .hop { fill: var(--air); }
+  .map .start { fill: var(--text); }
+  .map text { font: 600 10px var(--font-ui); letter-spacing: 0.14em; fill: var(--text-dim); text-transform: uppercase; }
+  .legend { position: absolute; right: 0; bottom: 0; display: flex; gap: 16px; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); }
+  .legend i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: -1px; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, auto) 1fr; gap: 28px; align-items: end; }
+  .stat span { display: block; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-dim); }
+  .stat b { font: 700 34px/1.05 var(--font-num); }
+  .stat b.ghost { color: var(--ghost); }
+
+  .go {
+    justify-self: end; appearance: none; border: 0; cursor: pointer;
+    font: 800 30px/1 var(--font-num); letter-spacing: 0.14em; text-transform: uppercase;
+    background: var(--heat); color: #1a0c00; padding: 18px 44px 18px 40px;
+    clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+    transition: background 120ms linear, transform 160ms var(--ease-out);
+  }
+  .go:hover { background: #ff9340; transform: translateX(4px); }
+  .go:active { transform: translateX(2px); }
+
+  /* ---------- footer settings ---------- */
+  footer { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; justify-content: space-between; padding: 16px clamp(20px, 4vw, 64px) 24px; border-top: 1px solid var(--line); background: var(--ground); }
+  .opts { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+  .switchbtn { appearance: none; background: none; border: 0; color: var(--text); font: 500 15px var(--font-ui); cursor: pointer; display: inline-flex; align-items: center; gap: 10px; padding: 6px 0; }
+  .switchbtn .box { width: 38px; height: 20px; background: var(--panel-2); border: 1px solid var(--line-strong); position: relative; transition: background 120ms linear; }
+  .switchbtn .box::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; background: var(--text-dim); transition: transform 160ms var(--ease-out), background 120ms linear; }
+  .switchbtn[aria-checked="true"] .box { background: rgba(25, 227, 255, 0.22); border-color: var(--air); }
+  .switchbtn[aria-checked="true"] .box::after { transform: translateX(18px); background: var(--air); }
+  .keys { color: var(--text-dim); font-size: 14px; display: flex; gap: 22px; flex-wrap: wrap; }
+  kbd { font: 600 13px var(--font-num); letter-spacing: 0.06em; padding: 2px 8px; background: var(--panel-2); border: 1px solid var(--line-strong); color: var(--text); margin-right: 6px; }
+
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(2, auto); }
+    .go { justify-self: stretch; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Air<em>Hop</em><small>Pick a track</small></div>
+</header>
+
+<main>
+  <section class="list" aria-labelledby="tl">
+    <h2 id="tl">Tracks</h2>
+    <div role="listbox" id="tracks" aria-label="Tracks" style="display:flex;flex-direction:column;gap:10px"></div>
+  </section>
+
+  <section class="preview" aria-live="polite">
+    <div>
+      <h1 id="pName"></h1>
+      <p class="desc" id="pDesc"></p>
+      <div class="tags" id="pTags"></div>
+    </div>
+
+    <div class="map" aria-hidden="true">
+      <svg id="map" viewBox="0 0 400 220" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="legend"><span><i style="background:var(--charge)"></i>Charge strip</span><span><i style="background:var(--air);border-radius:50%"></i>Hop</span></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span>Best lap</span><b class="num" id="sLap"></b></div>
+      <div class="stat"><span>Best 3-lap race</span><b class="num" id="sRace"></b></div>
+      <div class="stat"><span>Ghost</span><b class="num ghost" id="sGhost"></b></div>
+      <button class="go" id="go">Race</button>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="opts">
+    <button class="switchbtn" role="switch" aria-checked="true" id="sound"><span class="box"></span>Sound</button>
+    <button class="switchbtn" role="switch" aria-checked="true" id="shake"><span class="box"></span>Camera shake</button>
+    <button class="switchbtn" role="switch" aria-checked="true" id="ghostOpt"><span class="box"></span>Ghost</button>
+  </div>
+  <div class="keys"><span><kbd>↑</kbd><kbd>↓</kbd>Choose</span><span><kbd>Enter</kbd>Race</span><span><kbd>M</kbd>Mute</span></div>
+</footer>
+
+<script>
+  const I = {
+    wall:   '<svg viewBox="0 0 24 24"><path d="M4 20h7V6M11 6l5-3"/><path d="M16 3v18"/></svg>',
+    ceiling:'<svg viewBox="0 0 24 24"><path d="M3 5h18"/><path d="M8 5v6l4 4 4-4V5"/></svg>',
+    gap:    '<svg viewBox="0 0 24 24"><path d="M3 16h6M15 16h6"/><path d="M7 11c2-6 8-6 10 0"/></svg>',
+    loop:   '<svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="6"/><path d="M3 20c5 0 7-3 9-4M21 20c-5 0-7-3-9-4"/></svg>',
+  };
+  const NAMES = { wall: 'Wall', ceiling: 'Ceiling', gap: 'Gap', loop: 'Loop' };
+
+  // Placeholder outlines and times (synthetic). Hop markers and charge strips are track-data fields in the real game.
+  const TRACKS = [
+    { name: 'Warm-up', blurb: 'Gentle curves, one wall.', desc: 'Learn the suction. A forgiving circuit with a single wall climb and a charge strip before it.',
+      tags: ['wall'], lap: '0:48.212', race: '2:27.906', ghost: '0:48.212',
+      path: 'M70 118 C52 60 130 30 196 48 C262 64 300 28 344 62 C380 92 346 170 280 178 C226 184 200 150 150 168 C100 184 82 160 70 118 Z',
+      charge: [[128, 40], [300, 176]], hops: [], start: [196, 48] },
+    { name: 'Spiral Tower', blurb: 'Climb the spiral, cross the roof.', desc: 'A climbing spiral that ends on the ceiling. Save your air for the last turn.',
+      tags: ['wall', 'ceiling'], lap: '1:12.904', race: '3:41.688', ghost: '1:12.904',
+      path: 'M200 112 C200 96 226 96 228 116 C230 148 180 152 174 112 C168 62 240 58 254 112 C266 168 170 188 142 124 C112 58 190 18 252 28 C330 42 372 112 330 170 C300 206 210 206 150 188 C96 172 52 140 62 96 C72 52 120 34 160 38',
+      charge: [[250, 28], [150, 188]], hops: [], start: [160, 38] },
+    { name: 'Gap Run', blurb: 'Hop the gaps, ride the loop.', desc: 'Broken road that rewards a hop, with a full loop in the middle. Every gap has a slower way round.',
+      tags: ['gap', 'loop'], lap: null, race: null, ghost: null,
+      path: 'M50 150 L120 150 C150 150 160 120 190 110 L238 96 C282 84 330 90 350 128 C366 160 330 190 290 184 C250 178 244 140 270 128 C296 116 316 144 292 160 L160 198 L52 190 C36 188 30 160 50 150 Z',
+      charge: [[78, 150], [318, 94]], hops: [[190, 110], [160, 198]], start: [50, 150], gaps: true },
+  ];
+
+  const $ = id => document.getElementById(id);
+  let sel = 0;
+
+  function renderList() {
+    $('tracks').innerHTML = '';
+    TRACKS.forEach((t, i) => {
+      const b = document.createElement('button');
+      b.className = 'track'; b.setAttribute('role', 'option'); b.setAttribute('aria-selected', i === sel);
+      b.innerHTML = '<span class="name num">' + t.name + '</span>' +
+        '<span class="best num' + (t.lap ? '' : ' none') + '"><b>' + (t.lap || '--:--.---') + '</b><span>' + (t.lap ? 'Best lap' : 'No time yet') + '</span></span>' +
+        '<span class="blurb">' + t.blurb + '</span>';
+      b.addEventListener('click', () => select(i));
+      $('tracks').appendChild(b);
+    });
+  }
+
+  function renderMap(t) {
+    const svg = $('map');
+    svg.innerHTML = '';
+    const ns = 'http://www.w3.org/2000/svg';
+    const mk = (tag, attrs) => { const e = document.createElementNS(ns, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); svg.appendChild(e); return e; };
+    mk('path', { d: t.path, class: 'road' });
+    const line = mk('path', { d: t.path, class: 'line draw' });
+    const len = line.getTotalLength(); line.style.setProperty('--len', len);
+    if (t.gaps) { line.style.strokeDasharray = ''; line.classList.remove('draw'); line.style.strokeDasharray = '70 12 90 14 60 16 80 12 40 14'; }
+    t.charge.forEach(c => mk('circle', { cx: c[0], cy: c[1], r: 7, fill: 'none', stroke: 'var(--charge)', 'stroke-width': 4 }));
+    t.hops.forEach(h => mk('circle', { cx: h[0], cy: h[1], r: 5, class: 'hop' }));
+    mk('rect', { x: t.start[0] - 3, y: t.start[1] - 12, width: 6, height: 24, class: 'start' });
+    const lab = mk('text', { x: t.start[0] + 10, y: t.start[1] - 16 }); lab.textContent = 'Start / finish';
+  }
+
+  function select(i) {
+    sel = i; const t = TRACKS[i];
+    renderList();
+    $('pName').textContent = t.name; $('pDesc').textContent = t.desc;
+    $('pTags').innerHTML = t.tags.map(k => '<span class="tag">' + I[k] + NAMES[k] + '</span>').join('');
+    $('sLap').textContent = t.lap || '--:--.---';
+    $('sRace').textContent = t.race || '--:--.---';
+    $('sGhost').textContent = t.ghost ? 'Saved' : 'None';
+    renderMap(t);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') { select((sel + 1) % TRACKS.length); e.preventDefault(); }
+    if (e.key === 'ArrowUp') { select((sel + TRACKS.length - 1) % TRACKS.length); e.preventDefault(); }
+    if (e.key.toLowerCase() === 'm') $('sound').click();
+  });
+  document.querySelectorAll('.switchbtn').forEach(b => b.addEventListener('click', () => b.setAttribute('aria-checked', b.getAttribute('aria-checked') !== 'true')));
+  select(0);
+</script>
+</body>
+</html>

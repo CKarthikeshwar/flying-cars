@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AirHop HUD mockup</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  body { display: grid; grid-template-rows: auto 1fr; min-height: 100vh; }
+
+  /* state switcher: mockup chrome only, not part of the game */
+  .switch {
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--line);
+  }
+  .switch span { color: var(--text-dim); font-size: 13px; margin-right: 4px; }
+  .switch button {
+    font: 500 14px var(--font-ui); color: var(--text); background: var(--panel-2);
+    border: 1px solid var(--line-strong); padding: 7px 12px; cursor: pointer;
+  }
+  .switch button:hover { border-color: var(--air); }
+  .switch button[aria-pressed="true"] { background: var(--air); color: var(--ground); border-color: var(--air); }
+
+  .wrap { display: grid; place-items: center; padding: 16px; }
+
+  /* the 16:9 game frame; all HUD sizes use container units so it scales like the real canvas overlay */
+  .stage {
+    position: relative; width: min(100%, calc((100vh - 90px) * 16 / 9)); aspect-ratio: 16 / 9;
+    container-type: size; overflow: hidden; background: #04060a;
+    border: 1px solid var(--line);
+  }
+  .scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  /* ---------- HUD ---------- */
+  .hud { position: absolute; inset: 0; font-family: var(--font-ui); color: var(--text); pointer-events: none; }
+
+  .plate {
+    background: rgba(6, 8, 11, 0.66);
+    clip-path: polygon(0 0, calc(100% - 1.1cqw) 0, 100% 1.1cqw, 100% 100%, 1.1cqw 100%, 0 calc(100% - 1.1cqw));
+  }
+
+  .label { font-size: 0.95cqw; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-dim); }
+
+  /* position, top left */
+  .pos { position: absolute; left: 2.2cqw; top: 2.6cqh; padding: 0.8cqw 1.6cqw 0.7cqw 1.2cqw; display: flex; align-items: baseline; gap: 0.5cqw; }
+  .pos b { font: 700 4.6cqw/0.9 var(--font-num); }
+  .pos .of { font: 600 2cqw/1 var(--font-num); color: var(--text-dim); }
+  .pos .ord { font: 600 1.4cqw/1 var(--font-ui); color: var(--text-dim); margin-left: -0.2cqw; }
+
+  /* lap + timer, top centre */
+  .clock { position: absolute; left: 50%; top: 2.6cqh; transform: translateX(-50%); padding: 0.7cqw 2.2cqw 0.8cqw; text-align: center; min-width: 21cqw; }
+  .clock .row { display: flex; align-items: baseline; justify-content: center; gap: 1.2cqw; }
+  .clock .lap { font: 600 1.7cqw/1 var(--font-num); color: var(--text-dim); }
+  .clock .lap b { color: var(--text); font-weight: 700; }
+  .clock .time { font: 700 3.9cqw/1 var(--font-num); }
+  .gap {
+    display: inline-block; margin-top: 0.5cqw; font: 700 1.7cqw/1 var(--font-num);
+    padding: 0.25cqw 0.9cqw; letter-spacing: 0.03em;
+  }
+  .gap::before { content: "GHOST"; font: 600 0.8cqw var(--font-ui); letter-spacing: 0.16em; margin-right: 0.8cqw; color: var(--ghost); vertical-align: 0.15cqw; }
+  .gap.ahead { color: var(--charge); }
+  .gap.behind { color: var(--alarm); }
+
+  /* air gauge, left */
+  .air {
+    position: absolute; left: 2.2cqw; top: 50%; transform: translateY(-46%);
+    width: 5.6cqw; padding: 1cqw 0.9cqw 1cqw; text-align: center;
+  }
+  .air .val { font: 700 3cqw/1 var(--font-num); margin: 0.5cqw 0 0.8cqw; color: var(--air); }
+  .air .tank { display: flex; flex-direction: column-reverse; gap: 0.32cqw; height: 21cqh; }
+  .air .seg { flex: 1; background: rgba(25, 227, 255, 0.14); transition: background 120ms linear, box-shadow 120ms linear; }
+  .air .seg.on { background: var(--air); box-shadow: 0 0 0.7cqw rgba(25, 227, 255, 0.55); }
+  .air .unit { margin-top: 0.8cqw; }
+
+  .air.low .val { color: var(--alarm); }
+  .air.low .seg { background: rgba(255, 46, 99, 0.16); }
+  .air.low .seg.on { background: var(--alarm); box-shadow: 0 0 0.7cqw rgba(255, 46, 99, 0.6); }
+  .air.low .tank { animation: pulse 0.7s steps(2, jump-none) infinite; }
+  .air .warn { display: none; margin-top: 0.5cqw; font: 700 0.95cqw/1 var(--font-ui); letter-spacing: 0.14em; color: var(--alarm); }
+  .air.low .warn { display: block; }
+  @keyframes pulse { 50% { opacity: 0.45; } }
+
+  /* speed, bottom centre */
+  .speed { position: absolute; left: 50%; bottom: 3.2cqh; transform: translateX(-50%); padding: 0.5cqw 2.6cqw 0.9cqw; text-align: center; min-width: 17cqw; }
+  .speed .n { font: 700 6.2cqw/0.95 var(--font-num); }
+  .speed .u { margin-left: 0.5cqw; font: 600 1.2cqw var(--font-ui); letter-spacing: 0.16em; color: var(--text-dim); }
+  .speed .bar { height: 0.35cqw; background: rgba(255, 255, 255, 0.1); margin-top: 0.5cqw; }
+  .speed .bar i { display: block; height: 100%; background: var(--heat); width: 60%; transition: width 160ms linear; }
+  .boosting .speed .n { color: var(--heat); }
+
+  /* event popups: appear above the car, clear in ~1s */
+  .pop { position: absolute; left: 50%; top: 36cqh; transform: translateX(-50%); text-align: center; opacity: 0; }
+  .pop .big { font: 800 6.6cqw/0.9 var(--font-num); letter-spacing: 0.06em; text-transform: uppercase; }
+  .pop .sub { font: 700 2cqw/1.2 var(--font-num); letter-spacing: 0.1em; margin-top: 0.4cqw; }
+  .pop.show { animation: rise 1.25s var(--ease-out) both; }
+  @keyframes rise {
+    0% { opacity: 0; transform: translate(-50%, 1.8cqh) scale(0.94); }
+    14% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    72% { opacity: 1; transform: translate(-50%, -0.6cqh) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -2.4cqh) scale(1); }
+  }
+  .pop.perfect { color: var(--charge); }
+  .pop.rough { color: var(--heat); }
+  .pop.crash { color: var(--alarm); }
+  .pop.flip { color: var(--air); }
+
+  /* crash screen tint */
+  .vignette { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse at center, transparent 45%, rgba(255, 46, 99, 0.35) 100%); transition: opacity 200ms linear; }
+  .crashed .vignette { opacity: 1; }
+
+  .legend { color: var(--text-dim); font-size: 13px; padding: 0 16px 14px; max-width: 1100px; margin: 0 auto; }
+</style>
+</head>
+<body>
+
+<div class="switch" role="group" aria-label="Preview HUD state">
+  <span>Preview state</span>
+  <button data-s="cruise" aria-pressed="true">Cruising</button>
+  <button data-s="boost" aria-pressed="false">Boosting</button>
+  <button data-s="low" aria-pressed="false">Low air</button>
+  <button data-s="flip" aria-pressed="false">Flip bonus</button>
+  <button data-s="perfect" aria-pressed="false">Perfect landing</button>
+  <button data-s="rough" aria-pressed="false">Rough landing</button>
+  <button data-s="crash" aria-pressed="false">Crash</button>
+</div>
+
+<div class="wrap">
+  <div class="stage" id="stage">
+    <!-- placeholder scene: a banked neon track. In the game this is the Three.js canvas. -->
+    <svg class="scene" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#05070c"/><stop offset="0.5" stop-color="#0b1320"/><stop offset="0.52" stop-color="#1a1028"/><stop offset="1" stop-color="#07090d"/>
+        </linearGradient>
+        <linearGradient id="road" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#0d141b"/><stop offset="1" stop-color="#121c25"/>
+        </linearGradient>
+        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="5"/></filter>
+        <radialGradient id="thr" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#ffb066"/><stop offset="0.4" stop-color="#ff7a1a" stop-opacity="0.7"/><stop offset="1" stop-color="#ff7a1a" stop-opacity="0"/></radialGradient>
+      </defs>
+      <rect width="1600" height="900" fill="url(#sky)"/>
+      <!-- distant towers -->
+      <g fill="#0a0f18" stroke="#16222f" stroke-width="2">
+        <rect x="120" y="250" width="70" height="200"/><rect x="215" y="300" width="50" height="150"/><rect x="1300" y="220" width="80" height="230"/><rect x="1400" y="290" width="55" height="160"/><rect x="560" y="330" width="40" height="120"/><rect x="1010" y="320" width="46" height="130"/>
+      </g>
+      <!-- road ribbon -->
+      <polygon points="190,900 1410,900 860,452 740,452" fill="url(#road)"/>
+      <!-- edge lights, glow then core -->
+      <g filter="url(#glow)" opacity="0.9"><line x1="190" y1="900" x2="740" y2="452" stroke="#19e3ff" stroke-width="10"/><line x1="1410" y1="900" x2="860" y2="452" stroke="#ff7a1a" stroke-width="10"/></g>
+      <line x1="190" y1="900" x2="740" y2="452" stroke="#7df0ff" stroke-width="4"/>
+      <line x1="1410" y1="900" x2="860" y2="452" stroke="#ffb066" stroke-width="4"/>
+      <!-- centre dashes -->
+      <g stroke="#5c7284" stroke-width="5">
+        <line x1="800" y1="470" x2="800" y2="486"/><line x1="800" y1="520" x2="800" y2="548"/><line x1="800" y1="598" x2="800" y2="646"/><line x1="800" y1="710" x2="800" y2="786"/>
+      </g>
+      <!-- charge strip ahead -->
+      <polygon points="730,540 870,540 858,570 742,570" fill="#b8ff3c" opacity="0.85"/>
+      <polygon points="762,504 838,504 830,520 770,520" fill="#b8ff3c" opacity="0.55"/>
+      <!-- player car: rear view, original wedge -->
+      <g transform="translate(800 640) scale(0.92)">
+        <ellipse cx="0" cy="58" rx="150" ry="16" fill="#000" opacity="0.5"/>
+        <ellipse cx="-62" cy="30" rx="70" ry="46" fill="url(#thr)" opacity="0.85"/>
+        <ellipse cx="62" cy="30" rx="70" ry="46" fill="url(#thr)" opacity="0.85"/>
+        <polygon points="-120,48 -96,-26 -40,-52 40,-52 96,-26 120,48 90,60 -90,60" fill="#16212c" stroke="#33485a" stroke-width="3"/>
+        <polygon points="-70,-22 -34,-44 34,-44 70,-22 48,-8 -48,-8" fill="#0a1017" stroke="#33485a" stroke-width="2"/>
+        <rect x="-96" y="22" width="48" height="12" fill="#ff7a1a"/><rect x="48" y="22" width="48" height="12" fill="#ff7a1a"/>
+        <rect x="-26" y="6" width="52" height="8" fill="#19e3ff"/>
+        <rect x="-112" y="40" width="30" height="26" fill="#05080c"/><rect x="82" y="40" width="30" height="26" fill="#05080c"/>
+      </g>
+    </svg>
+    <div class="vignette"></div>
+
+    <div class="hud" id="hud">
+      <div class="plate pos" aria-label="Race position">
+        <b class="num" id="pos">2</b><span class="ord">ND</span><span class="of num">/ 4</span>
+      </div>
+
+      <div class="plate clock">
+        <div class="row">
+          <span class="lap num">LAP <b id="lap">2</b>/3</span>
+          <span class="time num" id="time">01:23.456</span>
+        </div>
+        <span class="gap ahead num" id="gap">-0.42</span>
+      </div>
+
+      <div class="plate air" id="air" role="img" aria-label="Air tank">
+        <div class="label">Air</div>
+        <div class="val num" id="airVal">72</div>
+        <div class="tank" id="tank"></div>
+        <div class="warn">LOW</div>
+      </div>
+
+      <div class="plate speed">
+        <div><span class="n num" id="spd">187</span><span class="u">KM/H</span></div>
+        <div class="bar"><i id="spdBar"></i></div>
+      </div>
+
+      <div class="pop" id="pop"><div class="big" id="popBig"></div><div class="sub" id="popSub"></div></div>
+    </div>
+  </div>
+</div>
+
+<p class="legend">Air gauge turns red and pulses under 20. Ghost gap is green when ahead and red when behind, and always carries a sign. Event pop-ups appear above the car for about a second. The HUD never rotates with the car, so it stays readable on walls and ceilings.</p>
+
+<script>
+  const SEG = 20;
+  const tank = document.getElementById('tank');
+  for (let i = 0; i < SEG; i++) tank.appendChild(document.createElement('div')).className = 'seg';
+  const segs = [...tank.children];
+
+  const $ = id => document.getElementById(id);
+  const hud = $('hud'), stage = $('stage');
+
+  const states = {
+    cruise:  { air: 72, spd: 187, boost: false, gap: -0.42 },
+    boost:   { air: 48, spd: 262, boost: true,  gap: -1.18 },
+    low:     { air: 14, spd: 141, boost: false, gap: 0.37 },
+    flip:    { air: 63, spd: 176, boost: false, gap: -0.42, pop: ['flip', '+10 AIR', ''] },
+    perfect: { air: 68, spd: 205, boost: false, gap: -0.55, pop: ['perfect', 'PERFECT', '+5 AIR'] },
+    rough:   { air: 55, spd: 98,  boost: false, gap: 0.12,  pop: ['rough', 'ROUGH', 'SPEED x0.6'] },
+    crash:   { air: 40, spd: 0,   boost: false, gap: 0.9,   pop: ['crash', 'CRASH', '+3.0 s PENALTY'], crashed: true },
+  };
+
+  function apply(key) {
+    const s = states[key];
+    segs.forEach((el, i) => el.classList.toggle('on', i < Math.round(s.air / 100 * SEG)));
+    $('air').classList.toggle('low', s.air < 20);
+    $('airVal').textContent = s.air;
+    $('spd').textContent = s.spd;
+    $('spdBar').style.width = Math.min(100, s.spd / 306 * 100) + '%';
+    hud.classList.toggle('boosting', s.boost);
+    stage.classList.toggle('crashed', !!s.crashed);
+    const g = $('gap');
+    g.textContent = (s.gap <= 0 ? '-' : '+') + Math.abs(s.gap).toFixed(2);
+    g.className = 'gap num ' + (s.gap <= 0 ? 'ahead' : 'behind');
+    const pop = $('pop');
+    pop.className = 'pop';
+    if (s.pop) {
+      void pop.offsetWidth;
+      $('popBig').textContent = s.pop[1];
+      $('popSub').textContent = s.pop[2];
+      pop.className = 'pop show ' + s.pop[0];
+    }
+  }
+
+  document.querySelectorAll('.switch button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.switch button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    apply(b.dataset.s);
+  }));
+  apply('cruise');
+
+  // running timer so the mockup feels alive
+  let t = 83.456;
+  setInterval(() => {
+    t += 0.047;
+    const m = Math.floor(t / 60), s = t % 60;
+    $('time').textContent = String(m).padStart(2, '0') + ':' + s.toFixed(3).padStart(6, '0');
+  }, 47);
+</script>
+</body>
+</html>

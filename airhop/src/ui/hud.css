@@ -1,0 +1,238 @@
+/* In-race HUD. Sizes use container units, so 1cqw is 1% of the window width. */
+#hud {
+  position: fixed;
+  inset: 0;
+  container-type: size;
+  pointer-events: none;
+  font-family: var(--font-ui);
+  color: var(--text);
+  user-select: none;
+}
+
+.plate {
+  background: rgba(6, 8, 11, 0.66);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 1.1cqw) 0,
+    100% 1.1cqw,
+    100% 100%,
+    1.1cqw 100%,
+    0 calc(100% - 1.1cqw)
+  );
+}
+
+.label {
+  font-size: 0.95cqw;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* air gauge, left */
+.air {
+  position: absolute;
+  left: 2.2cqw;
+  top: 50%;
+  transform: translateY(-46%);
+  width: 5.6cqw;
+  padding: 1cqw 0.9cqw;
+  text-align: center;
+}
+.air .val {
+  font: 700 3cqw/1 var(--font-num);
+  margin: 0.5cqw 0 0.8cqw;
+  color: var(--air);
+}
+.air .tank {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.32cqw;
+  height: 30cqh;
+}
+.air .seg {
+  flex: 1;
+  background: rgba(25, 227, 255, 0.14);
+}
+.air .seg.on {
+  background: var(--air);
+  box-shadow: 0 0 0.7cqw rgba(25, 227, 255, 0.55);
+}
+.air .warn {
+  visibility: hidden;
+  margin-top: 0.6cqw;
+  font: 700 1cqw/1 var(--font-ui);
+  letter-spacing: 0.14em;
+  color: var(--alarm);
+}
+.air.low .val {
+  color: var(--alarm);
+}
+.air.low .seg {
+  background: rgba(255, 46, 99, 0.16);
+}
+.air.low .seg.on {
+  background: var(--alarm);
+  box-shadow: 0 0 0.7cqw rgba(255, 46, 99, 0.6);
+}
+.air.low .tank {
+  animation: pulse 0.7s steps(2, jump-none) infinite;
+}
+.air.low .warn {
+  visibility: visible;
+}
+.air.empty-flash .tank {
+  animation: pulse 0.2s steps(2, jump-none) 3;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* speed, bottom centre */
+.speed {
+  position: absolute;
+  left: 50%;
+  bottom: 3.2cqh;
+  transform: translateX(-50%);
+  padding: 0.5cqw 2.6cqw 0.9cqw;
+  text-align: center;
+  min-width: 17cqw;
+}
+.speed .n {
+  font: 700 6.2cqw/0.95 var(--font-num);
+}
+.speed .u {
+  margin-left: 0.5cqw;
+  font: 600 1.2cqw var(--font-ui);
+  letter-spacing: 0.16em;
+  color: var(--text-dim);
+}
+.speed .bar {
+  height: 0.35cqw;
+  background: rgba(255, 255, 255, 0.1);
+  margin-top: 0.5cqw;
+}
+.speed .bar i {
+  display: block;
+  height: 100%;
+  background: var(--heat);
+  width: 0;
+}
+#hud.boosting .speed .n {
+  color: var(--heat);
+}
+
+/* event pop-ups: above the car, gone in about a second */
+.pop {
+  position: absolute;
+  left: 50%;
+  top: 34cqh;
+  transform: translateX(-50%);
+  text-align: center;
+  opacity: 0;
+}
+.pop .big {
+  font: 800 6.6cqw/0.9 var(--font-num);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.pop .sub {
+  font: 700 2cqw/1.2 var(--font-num);
+  letter-spacing: 0.1em;
+  margin-top: 0.4cqw;
+}
+.pop.show {
+  animation: rise 1.25s var(--ease-out) both;
+}
+@keyframes rise {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 1.8cqh) scale(0.94);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  72% {
+    opacity: 1;
+    transform: translate(-50%, -0.6cqh) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -2.4cqh) scale(1);
+  }
+}
+.pop.perfect {
+  color: var(--charge);
+}
+.pop.rough {
+  color: var(--heat);
+}
+.pop.crash {
+  color: var(--alarm);
+}
+.pop.flip {
+  color: var(--air);
+}
+.pop.small .big {
+  font-size: 3.2cqw;
+}
+
+/* crash tint */
+.vignette {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(255, 46, 99, 0.35) 100%);
+  transition: opacity 200ms linear;
+}
+#hud.crashed .vignette {
+  opacity: 1;
+}
+
+/* pause */
+.paused {
+  position: absolute;
+  inset: 0;
+  display: none;
+  place-items: center;
+  background: rgba(6, 8, 11, 0.6);
+}
+#hud.is-paused .paused {
+  display: grid;
+}
+.paused div {
+  text-align: center;
+}
+.paused b {
+  display: block;
+  font: 800 8cqw/1 var(--font-num);
+  letter-spacing: 0.14em;
+}
+.paused span {
+  color: var(--text-dim);
+  font-size: 1.4cqw;
+  letter-spacing: 0.1em;
+}
+
+/* debug overlay (?debug=1) */
+.debug {
+  position: absolute;
+  right: 1.4cqw;
+  top: 1.4cqw;
+  padding: 0.8cqw 1cqw;
+  font: 500 1.05cqw/1.45 var(--font-num);
+  letter-spacing: 0.04em;
+  color: var(--text);
+  background: rgba(6, 8, 11, 0.75);
+  white-space: pre;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .air.low .tank,
+  .air.empty-flash .tank {
+    animation: none;
+  }
+}
