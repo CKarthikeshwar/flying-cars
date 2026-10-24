@@ -1,0 +1,30 @@
+/* The page shown when the game cannot start (no WebGL, or something failed while loading). */
+.unsupported {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+  background: var(--ground);
+  color: var(--text);
+}
+.unsupported h1 {
+  margin: 0;
+  font: 800 clamp(34px, 6vw, 64px) var(--font-num);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.unsupported h1 span {
+  color: var(--air);
+}
+.unsupported p {
+  margin: 0 auto;
+  max-width: 46ch;
+  font: 500 clamp(15px, 1.8vw, 19px) / 1.5 var(--font-ui);
+  color: var(--text-dim);
+}
+.unsupported .tips {
+  color: var(--text);
+}

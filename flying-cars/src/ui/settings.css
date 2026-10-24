@@ -1,0 +1,52 @@
+/* The settings panel, shown on the pause screen */
+.settings {
+  width: min(640px, 92%);
+  margin: 2.4cqh auto;
+  padding: 1.6cqh 2cqw 1.4cqh;
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  font-family: var(--font-ui);
+  color: var(--text);
+}
+.settings h3 {
+  margin: 0 0 1.2cqh;
+  font: 600 1.1cqw var(--font-ui);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.settings .setting {
+  display: grid;
+  grid-template-columns: 12cqw minmax(8cqw, 1fr) 5.5cqw;
+  align-items: center;
+  gap: 1.4cqw;
+  text-align: left;
+  padding: 0.9cqh 0.8cqw;
+  border-left: 0.25cqw solid transparent;
+}
+.settings .setting.selected {
+  border-left-color: var(--air);
+  background: var(--panel-2);
+}
+.settings .name {
+  font: 600 1.2cqw var(--font-ui);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.settings .value {
+  font: 700 2cqw var(--font-num);
+  text-align: right;
+  color: var(--air);
+}
+.settings .slider {
+  width: 100%;
+  accent-color: var(--air);
+  cursor: pointer;
+}
+.settings .hint {
+  margin: 1.2cqh 0 0;
+  font-size: 1cqw;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+}

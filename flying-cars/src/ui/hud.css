@@ -1,0 +1,487 @@
+/* In-race HUD. Sizes use container units, so 1cqw is 1% of the window width. */
+#hud {
+  position: fixed;
+  inset: 0;
+  container-type: size;
+  pointer-events: none;
+  font-family: var(--font-ui);
+  color: var(--text);
+  user-select: none;
+}
+
+.plate {
+  background: rgba(6, 8, 11, 0.66);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 1.1cqw) 0,
+    100% 1.1cqw,
+    100% 100%,
+    1.1cqw 100%,
+    0 calc(100% - 1.1cqw)
+  );
+}
+
+.label {
+  font-size: 0.95cqw;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* air gauge, left */
+.air {
+  position: absolute;
+  left: 2.2cqw;
+  top: 50%;
+  transform: translateY(-46%);
+  width: 5.6cqw;
+  padding: 1cqw 0.9cqw;
+  text-align: center;
+}
+.air .val {
+  font: 700 3cqw/1 var(--font-num);
+  margin: 0.5cqw 0 0.8cqw;
+  color: var(--air);
+}
+.air .tank {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.32cqw;
+  height: 30cqh;
+}
+.air .seg {
+  flex: 1;
+  background: rgba(25, 227, 255, 0.14);
+}
+.air .seg.on {
+  background: var(--air);
+  box-shadow: 0 0 0.7cqw rgba(25, 227, 255, 0.55);
+}
+.air .warn {
+  visibility: hidden;
+  margin-top: 0.6cqw;
+  font: 700 1cqw/1 var(--font-ui);
+  letter-spacing: 0.14em;
+  color: var(--alarm);
+}
+.air.low .val {
+  color: var(--alarm);
+}
+.air.low .seg {
+  background: rgba(255, 46, 99, 0.16);
+}
+.air.low .seg.on {
+  background: var(--alarm);
+  box-shadow: 0 0 0.7cqw rgba(255, 46, 99, 0.6);
+}
+.air.low .tank {
+  animation: pulse 0.7s steps(2, jump-none) infinite;
+}
+.air.low .warn {
+  visibility: visible;
+}
+.air.empty-flash .tank {
+  animation: pulse 0.2s steps(2, jump-none) 3;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* speed: small, in the top-right corner (it is not what a player needs to watch) */
+.speed {
+  position: absolute;
+  right: 2.2cqw;
+  top: 2.6cqh;
+  padding: 0.4cqw 1.4cqw;
+  text-align: right;
+}
+.speed .n {
+  font: 700 2.4cqw/1 var(--font-num);
+  color: var(--text-dim);
+}
+.speed .u {
+  margin-left: 0.4cqw;
+  font: 600 0.95cqw var(--font-ui);
+  letter-spacing: 0.16em;
+  color: var(--text-dim);
+}
+.speed .bar {
+  display: none;
+}
+#hud.boosting .speed .n {
+  color: var(--heat);
+}
+
+/* event pop-ups: above the car, gone in about a second */
+.pop {
+  position: absolute;
+  left: 50%;
+  top: 34cqh;
+  transform: translateX(-50%);
+  text-align: center;
+  opacity: 0;
+}
+.pop .big {
+  font: 800 6.6cqw/0.9 var(--font-num);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.pop .sub {
+  font: 700 2cqw/1.2 var(--font-num);
+  letter-spacing: 0.1em;
+  margin-top: 0.4cqw;
+}
+.pop.show {
+  animation: rise 1.25s var(--ease-out) both;
+}
+@keyframes rise {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 1.8cqh) scale(0.94);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  72% {
+    opacity: 1;
+    transform: translate(-50%, -0.6cqh) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -2.4cqh) scale(1);
+  }
+}
+.pop.perfect {
+  color: var(--charge);
+}
+.pop.rough {
+  color: var(--heat);
+}
+.pop.crash {
+  color: var(--alarm);
+}
+.pop.flip {
+  color: var(--air);
+}
+.pop.small .big {
+  font-size: 3.2cqw;
+}
+
+/* crash tint */
+.vignette {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(255, 46, 99, 0.35) 100%);
+  transition: opacity 200ms linear;
+}
+#hud.crashed .vignette {
+  opacity: 1;
+}
+
+/* pause */
+.paused {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  container-type: size;
+  pointer-events: auto;
+  font-family: var(--font-ui);
+  color: var(--text);
+  display: none;
+  place-items: center;
+  background: rgba(6, 8, 11, 0.96);
+}
+.paused.open {
+  display: grid;
+}
+.paused div {
+  text-align: center;
+}
+.paused b {
+  display: block;
+  font: 800 8cqw/1 var(--font-num);
+  letter-spacing: 0.14em;
+}
+.paused .sub {
+  color: var(--text-dim);
+  font-size: 1.4cqw;
+  letter-spacing: 0.1em;
+}
+
+/* debug overlay (?debug=1) */
+.debug {
+  position: absolute;
+  right: 1.4cqw;
+  top: 1.4cqw;
+  padding: 0.8cqw 1cqw;
+  font: 500 1.05cqw/1.45 var(--font-num);
+  letter-spacing: 0.04em;
+  color: var(--text);
+  background: rgba(6, 8, 11, 0.75);
+  white-space: pre;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .air.low .tank,
+  .air.empty-flash .tank {
+    animation: none;
+  }
+}
+
+/* pause screen: the controls list sits left aligned under the title */
+.paused {
+  overflow: auto;
+}
+.paused .controls,
+.paused .controls div,
+.paused .controls section {
+  text-align: left;
+}
+.paused > div {
+  width: min(900px, 92%);
+  padding: 2cqh 0;
+}
+
+/* which way is up: a small ring with an arrow, shown when the view is tilted */
+.horizon {
+  position: absolute;
+  right: 2.2cqw;
+  bottom: 3.2cqh;
+  width: 7.2cqw;
+  padding: 0.7cqw 0.5cqw 0.6cqw;
+  text-align: center;
+  display: none;
+}
+.horizon.shown {
+  display: block;
+}
+.horizon .ring {
+  position: relative;
+  width: 5.2cqw;
+  height: 5.2cqw;
+  margin: 0 auto;
+  border: 0.18cqw solid var(--line-strong);
+  border-radius: 50%;
+}
+.horizon .arrow {
+  position: absolute;
+  inset: 0;
+  transition: transform 90ms linear;
+}
+.horizon .arrow::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0.35cqw;
+  transform: translateX(-50%);
+  border-left: 0.9cqw solid transparent;
+  border-right: 0.9cqw solid transparent;
+  border-bottom: 1.8cqw solid var(--charge);
+}
+.horizon .arrow::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 2.1cqw;
+  width: 0.3cqw;
+  height: 1.6cqw;
+  transform: translateX(-50%);
+  background: var(--charge);
+}
+.horizon .cap {
+  margin-top: 0.4cqw;
+  font: 600 0.9cqw var(--font-ui);
+  letter-spacing: 0.16em;
+  color: var(--text-dim);
+}
+
+/* in the air: the landing guide, left of the up arrow */
+.landing {
+  position: absolute;
+  right: 10.6cqw;
+  bottom: 3.2cqh;
+  width: 7.2cqw;
+  padding: 0.7cqw 0.5cqw 0.6cqw;
+  text-align: center;
+  display: none;
+  border-bottom: 0.25cqw solid var(--line-strong);
+}
+.landing.shown {
+  display: block;
+}
+.landing .cap {
+  font: 600 0.9cqw var(--font-ui);
+  letter-spacing: 0.16em;
+  color: var(--text-dim);
+}
+.landing .deg {
+  font: 700 3.2cqw/1 var(--font-num);
+  color: var(--charge);
+}
+.landing .hint {
+  margin-top: 0.3cqw;
+  font: 600 0.9cqw var(--font-ui);
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+}
+.landing[data-state='good'] {
+  border-bottom-color: var(--charge);
+}
+.landing[data-state='warn'] {
+  border-bottom-color: var(--heat);
+}
+.landing[data-state='warn'] .deg {
+  color: var(--heat);
+}
+.landing[data-state='bad'] {
+  border-bottom-color: var(--alarm);
+}
+.landing[data-state='bad'] .deg {
+  color: var(--alarm);
+}
+
+/* over a charge strip the gauge glows lime and fills fast */
+.air.charging .seg.on {
+  background: var(--charge);
+  box-shadow: 0 0 0.9cqw rgba(184, 255, 60, 0.7);
+}
+.air.charging .val {
+  color: var(--charge);
+}
+
+/* hints: what is coming and which key to press */
+.hintbox {
+  position: absolute;
+  left: 50%;
+  top: 17cqh;
+  transform: translate(-50%, -6px);
+  display: none;
+  align-items: center;
+  gap: 1.2cqw;
+  max-width: 52cqw;
+  padding: 1cqh 1.6cqw;
+  background: rgba(6, 8, 11, 0.78);
+  border-left: 0.3cqw solid var(--air);
+  opacity: 0;
+  transition:
+    opacity 160ms linear,
+    transform 160ms var(--ease-out);
+}
+.hintbox.shown {
+  display: flex;
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.hintbox.now {
+  border-left-color: var(--heat);
+  background: rgba(40, 18, 4, 0.86);
+}
+.hintbox .key {
+  font: 700 1.5cqw var(--font-num);
+  letter-spacing: 0.06em;
+  padding: 0.4cqh 1cqw;
+  min-width: 3.4cqw;
+  text-align: center;
+  background: var(--panel-2);
+  border: 1px solid var(--air);
+  color: var(--air);
+}
+.hintbox.now .key {
+  border-color: var(--heat);
+  color: var(--heat);
+}
+.hintbox .title {
+  display: block;
+  font: 700 1.9cqw/1.1 var(--font-num);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.hintbox .text {
+  display: block;
+  margin-top: 0.3cqh;
+  font: 500 1.3cqw/1.3 var(--font-ui);
+  color: var(--text-dim);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hintbox.now .key {
+    animation: hint-pulse 0.6s ease-in-out infinite alternate;
+  }
+}
+@keyframes hint-pulse {
+  from {
+    box-shadow: 0 0 0 0 rgba(255, 122, 26, 0);
+  }
+  to {
+    box-shadow: 0 0 1.4cqw rgba(255, 122, 26, 0.7);
+  }
+}
+
+/* the buttons on the pause screen */
+.paused .actions {
+  display: flex;
+  justify-content: center;
+  gap: 1.2cqw;
+  margin: 2cqh 0 0;
+  flex-wrap: wrap;
+}
+.paused .btn {
+  font: 600 1.3cqw var(--font-ui);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--line-strong);
+  padding: 1cqh 1.6cqw;
+  cursor: pointer;
+}
+.paused .btn:hover,
+.paused .btn:focus-visible {
+  border-color: var(--air);
+}
+.paused .btn.primary {
+  background: var(--heat);
+  border-color: var(--heat);
+  color: #1a0b00;
+}
+.paused .btn kbd {
+  margin-left: 0.8cqw;
+  font: 600 1cqw var(--font-num);
+  opacity: 0.7;
+}
+
+/* the keys that are not for driving, always in the corner while racing */
+.keyhelp {
+  position: absolute;
+  left: 2.2cqw;
+  bottom: 3.2cqh;
+  display: none;
+  flex-direction: column;
+  gap: 0.5cqh;
+  font: 500 1.05cqw var(--font-ui);
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+#hud.is-race .keyhelp {
+  display: flex;
+}
+.keyhelp .row {
+  display: flex;
+  align-items: center;
+  gap: 0.7cqw;
+}
+.keyhelp kbd {
+  min-width: 3.2cqw;
+  padding: 0.2cqh 0.6cqw;
+  text-align: center;
+  font: 600 0.95cqw var(--font-num);
+  color: var(--text);
+  background: rgba(6, 8, 11, 0.7);
+  border: 1px solid var(--line-strong);
+}

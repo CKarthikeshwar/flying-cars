@@ -1,0 +1,178 @@
+/* Start screen and the controls list (also used in the pause screen) */
+.start {
+  position: fixed;
+  inset: 0;
+  display: none;
+  place-items: center;
+  padding: clamp(14px, 3vh, 48px) clamp(16px, 3vw, 48px);
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%, rgba(25, 227, 255, 0.14), transparent 70%),
+    rgba(6, 8, 11, 0.82);
+  overflow: auto;
+  font-family: var(--font-ui);
+  color: var(--text);
+}
+.start.shown {
+  display: grid;
+}
+.start .sheet {
+  width: min(1000px, 100%);
+  display: grid;
+  gap: clamp(16px, 3vh, 34px);
+}
+.start .logo {
+  font: 800 clamp(46px, 7vw, 92px) / 0.95 var(--font-num);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.start .logo em {
+  font-style: normal;
+  color: var(--air);
+}
+.start .where {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 28px;
+  margin-top: 10px;
+}
+.start .where b {
+  font: 700 clamp(26px, 3vw, 38px) / 1 var(--font-num);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.start .where span {
+  color: var(--text-dim);
+  font: 500 18px var(--font-ui);
+}
+.start .go {
+  justify-self: start;
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  font: 800 30px/1 var(--font-num);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: var(--heat);
+  color: #1a0c00;
+  padding: 18px 44px 18px 40px;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 18px) 0,
+    100% 18px,
+    100% 100%,
+    18px 100%,
+    0 calc(100% - 18px)
+  );
+  transition:
+    background 120ms linear,
+    transform 160ms var(--ease-out);
+}
+.start .go:hover {
+  background: #ff9340;
+  transform: translateX(4px);
+}
+.start .go kbd {
+  font: 600 14px var(--font-num);
+  padding: 2px 8px;
+  margin-left: 12px;
+  background: rgba(255, 255, 255, 0.28);
+  letter-spacing: 0.06em;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(14px, 2vw, 28px);
+}
+.controls .ctl-group {
+  background: rgba(12, 17, 22, 0.92);
+  padding: 16px 18px 14px;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 14px) 0,
+    100% 14px,
+    100% 100%,
+    14px 100%,
+    0 calc(100% - 14px)
+  );
+}
+.controls h3 {
+  margin: 0 0 10px;
+  font: 600 13px var(--font-ui);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.controls .ctl-row {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 5px 0;
+  font-size: 15px;
+}
+.controls .ctl-keys {
+  display: flex;
+  gap: 4px;
+}
+.controls kbd {
+  font: 600 14px var(--font-num);
+  min-width: 28px;
+  text-align: center;
+  padding: 3px 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  letter-spacing: 0.06em;
+}
+.controls .ctl-text {
+  color: var(--text-dim);
+}
+.controls .ctl-tips {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  color: var(--text-dim);
+  font-size: 15px;
+}
+.controls .ctl-tips li::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 10px;
+  background: var(--charge);
+}
+
+@media (max-width: 860px) {
+  .controls {
+    grid-template-columns: 1fr;
+  }
+}
+
+.start .actions {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+.start .link {
+  font: 600 14px var(--font-ui);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line-strong);
+  padding: 4px 0;
+  cursor: pointer;
+}
+.start .link:hover,
+.start .link:focus-visible {
+  color: var(--text);
+  border-bottom-color: var(--air);
+}

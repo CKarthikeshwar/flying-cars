@@ -1,0 +1,155 @@
+/* ---------- race: position, lap and timer, ghost gap, countdown ---------- */
+.race {
+  display: none;
+}
+#hud.is-race .race {
+  display: block;
+}
+
+.pos {
+  position: absolute;
+  left: 2.2cqw;
+  top: 2.6cqh;
+  padding: 0.8cqw 1.6cqw 0.7cqw 1.2cqw;
+}
+#hud.is-race .pos {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5cqw;
+}
+.pos b {
+  font: 700 4.6cqw/0.9 var(--font-num);
+}
+.pos .ord {
+  font: 600 1.4cqw/1 var(--font-ui);
+  color: var(--text-dim);
+  margin-left: -0.2cqw;
+}
+.pos .of {
+  font: 600 2cqw/1 var(--font-num);
+  color: var(--text-dim);
+}
+
+.clock {
+  position: absolute;
+  left: 50%;
+  top: 2.6cqh;
+  transform: translateX(-50%);
+  padding: 0.7cqw 2.2cqw 0.8cqw;
+  text-align: center;
+  min-width: 21cqw;
+}
+.clock .row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 1.2cqw;
+}
+.clock .lap {
+  font: 600 1.7cqw/1 var(--font-num);
+  color: var(--text-dim);
+}
+.clock .lap b {
+  color: var(--text);
+  font-weight: 700;
+}
+.clock .time {
+  font: 700 3.9cqw/1 var(--font-num);
+}
+.clock .extra {
+  display: flex;
+  justify-content: center;
+  gap: 1.4cqw;
+  margin-top: 0.5cqw;
+  min-height: 1.9cqw;
+}
+.gap {
+  font: 700 1.7cqw/1 var(--font-num);
+  padding: 0.25cqw 0.9cqw;
+  letter-spacing: 0.03em;
+  visibility: hidden;
+}
+.gap.shown {
+  visibility: visible;
+}
+.gap::before {
+  content: 'GHOST';
+  font: 600 0.8cqw var(--font-ui);
+  letter-spacing: 0.16em;
+  margin-right: 0.8cqw;
+  color: var(--ghost);
+  vertical-align: 0.15cqw;
+}
+.gap.ahead {
+  color: var(--charge);
+}
+.gap.behind {
+  color: var(--alarm);
+}
+.penalty {
+  font: 700 1.7cqw/1 var(--font-num);
+  padding: 0.25cqw 0.9cqw;
+  color: var(--alarm);
+  visibility: hidden;
+}
+.penalty.shown {
+  visibility: visible;
+}
+
+.countdown {
+  position: absolute;
+  inset: 0;
+  text-align: center;
+}
+#hud.is-race .countdown {
+  display: none;
+}
+#hud.is-race .countdown.shown {
+  display: grid;
+  place-items: center;
+}
+.countdown b {
+  font: 800 16cqw/0.9 var(--font-num);
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 2cqw rgba(6, 8, 11, 0.9);
+  animation: count 1s var(--ease-out) both;
+}
+.countdown.go b {
+  color: var(--charge);
+  animation: count-go 0.9s var(--ease-out) both;
+}
+@keyframes count {
+  0% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+  25% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.85;
+    transform: scale(0.94);
+  }
+}
+@keyframes count-go {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .countdown b,
+  .countdown.go b {
+    animation: none;
+  }
+}
