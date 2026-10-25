@@ -1,6 +1,7 @@
 import type { Track } from '../track/Track';
 import { controlsList } from './controls';
 import { formatTime } from './hud';
+import { REPO_URL } from './links';
 import './menu.css';
 
 export type TrackFeature = 'wall' | 'ceiling' | 'gap' | 'loop' | 'climb';
@@ -159,6 +160,10 @@ export class TrackMenu {
     hint('Enter', 'Race');
     hint('H', 'Controls', () => this.toggleHelp());
     hint('Esc', 'Settings', () => this.onSettings());
+    const source = el('a', 'keybtn', keys, 'GitHub');
+    source.setAttribute('href', REPO_URL);
+    source.setAttribute('target', '_blank');
+    source.setAttribute('rel', 'noopener');
     document.body.appendChild(this.root);
   }
 

@@ -349,6 +349,7 @@
   border: 0;
   padding: 0;
   cursor: pointer;
+  text-decoration: none;
 }
 .menu .keys .keybtn:hover,
 .menu .keys .keybtn:focus-visible {

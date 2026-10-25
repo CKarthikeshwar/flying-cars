@@ -1,5 +1,6 @@
 import { controlsList } from './controls';
 import { formatTime } from './hud';
+import { REPO_URL } from './links';
 import './start.css';
 
 export interface StartInfo {
@@ -80,6 +81,13 @@ export class StartScreen {
     };
     link('Track menu', () => this.onMenu());
     link('Settings', () => this.onSettings());
+    const source = document.createElement('a');
+    source.className = 'link';
+    source.textContent = 'GitHub';
+    source.href = REPO_URL;
+    source.target = '_blank';
+    source.rel = 'noopener';
+    row.appendChild(source);
     this.sheet.appendChild(row);
 
     this.root.classList.add('shown');
